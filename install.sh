@@ -8,6 +8,7 @@
 set -euo pipefail
 
 REPO="${GROK_SETUP_REPO:-https://raw.githubusercontent.com/gith-ship-it/grok-search-setup/main}"
+export GROK_SETUP_REPO="$REPO"
 
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js 18+ is required (grok-search-rs ships as a node-installed binary)." >&2

@@ -18,6 +18,7 @@ import path from 'node:path';
 const NAME = 'grok-search';
 const isWin = process.platform === 'win32';
 const env = process.env;
+const REPO = (env.GROK_SETUP_REPO || 'https://raw.githubusercontent.com/gith-ship-it/grok-search-setup/main').replace(/\/+$/, '');
 
 const KEY = (env.GROK_CPA_KEY || '').trim();
 const URL = (env.GROK_URL || 'https://api.x.ai/v1').trim().replace(/\/+$/, '');
@@ -123,6 +124,28 @@ function configOpencode() {
   log('OK opencode configured ->', cfg);
 }
 
+// Claude Code auto-invokes tools better with a skill: its trigger description is
+// always in context, telling the agent WHEN to reach for grok-search (same
+// pattern Firecrawl uses for its official skill).
+const skillDir = path.join(home, '.claude', 'skills', NAME);
+
+async function configSkill() {
+  if (!have('claude') && !fs.existsSync(path.join(home, '.claude'))) {
+    log('Claude Code not found - skipping skill install');
+    return;
+  }
+  try {
+    const r = await fetch(`${REPO}/skills/grok-search/SKILL.md`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const md = await r.text();
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), md);
+    log('OK Claude Code skill installed ->', path.join(skillDir, 'SKILL.md'));
+  } catch (e) {
+    warn('skill install skipped (fetch failed):', e.message);
+  }
+}
+
 async function verify() {
   try {
     const r = await fetch(`${URL}/models`, {
@@ -150,6 +173,7 @@ function uninstall() {
     } catch { /* leave as-is */ }
   }
   try { fs.rmSync(keyFile); } catch { /* already gone */ }
+  try { fs.rmSync(skillDir, { recursive: true, force: true }); } catch { /* already gone */ }
   log('removed grok-search MCP config from all clients + deleted key file.');
   log('binary left in place. Run: npm uninstall -g grok-search-rs   to remove it.');
 }
@@ -164,6 +188,7 @@ async function main() {
   configClaude();
   configCodex();
   configOpencode();
+  await configSkill();
   await verify();
   log('done. In your agent, the tool set "grok-search" (web_search / get_sources / web_fetch) is now available.');
   log('X search is on: ask e.g. "what is X saying about <topic> today" - Grok will use X as a source.');

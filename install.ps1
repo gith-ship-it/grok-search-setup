@@ -7,6 +7,7 @@
 $ErrorActionPreference = 'Stop'
 
 $repo = if ($env:GROK_SETUP_REPO) { $env:GROK_SETUP_REPO } else { 'https://raw.githubusercontent.com/gith-ship-it/grok-search-setup/main' }
+$env:GROK_SETUP_REPO = $repo
 
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
   Write-Host 'Node.js 18+ is required (grok-search-rs ships as a node-installed binary).'

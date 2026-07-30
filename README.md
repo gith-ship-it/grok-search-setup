@@ -56,6 +56,16 @@ For each detected client it registers a `grok-search` MCP server whose tools are
 Existing MCP servers are left untouched (merge, not overwrite). Re-running updates the entry
 in place (idempotent).
 
+### Claude Code skill (auto-invocation)
+
+On machines with Claude Code, the installer also drops a **skill** at
+`~/.claude/skills/grok-search/SKILL.md` ([source](skills/grok-search/SKILL.md)). MCP tool
+descriptions alone only get you tool-picking once the agent already decided to search; the
+skill's trigger description stays in context and tells the agent *when* to reach for
+grok-search (live info, X sentiment, deep research) and when to prefer a faster tool — the
+same pattern Firecrawl uses for its official skill. Restart Claude Code to load it.
+Uninstalling removes the skill too.
+
 ## Options (env vars)
 
 | Var | Default | Meaning |
